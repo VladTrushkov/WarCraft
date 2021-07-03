@@ -1,20 +1,25 @@
-from settings import *
 from units import *
 
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode(SIZE)
     clock = pygame.time.Clock()
 
-    x_pos = 0
-    v = 20  # пикселей в секунду
+    speed = 0
     running = True
 
     all_sprites = pygame.sprite.Group()
     sprite = pygame.sprite.Sprite(all_sprites)
-    sprite.image = load_image(r"sprites\human\x_startpoint.png")
+    image = load_image(r"sprites\human\x_startpoint.png")
+    image = load_image(r"sprites\human\units\peasant.png")
+    sprite.image = image
+    sprite.image = pygame.transform.scale(image, (CELL_SIZE, CELL_SIZE))
+    cut_sheet(image, 1, 1)
+    sprite.image = frames[3]
     sprite.rect = sprite.image.get_rect()
+
+    for _ in range(1):
+        Unit(all_sprites)
 
     while running:
         for event in pygame.event.get():
@@ -23,10 +28,12 @@ def main():
                 running = False
         sprite.rect.x = 100
         sprite.rect.y = 200
-        #screen.fill((0, 0, 0))
-        #pygame.draw.circle(screen, (255, 0, 0), (int(x_pos), 200), 20)
-        #x_pos += v * clock.tick() / 1000  # v * t в секундах
-        all_sprites.draw(screen)
+        SCREEN.fill((0, 0, 0))
+        speed += clock.tick() / 60
+        print(speed)
+        i = int(speed % 5)
+        sprite.image = frames[i]
+        all_sprites.draw(SCREEN)
         pygame.display.flip()
 
     pygame.quit()
