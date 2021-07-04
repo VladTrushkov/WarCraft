@@ -1,15 +1,17 @@
-import pygame
 from settings import *
 import os
-import random
 
-SCREEN = pygame.display.set_mode(SIZE)
+
 frames = []
 
 
 def load_image(name, color_key=None):
     fullname = os.path.join('data', name)
-    image = pygame.image.load(fullname).convert()
+    try:
+        image = pygame.image.load(fullname).convert()
+    except pygame.error as message:
+        print('Cannot load image:', name)
+        raise SystemExit(message)
     if color_key is not None:
         if color_key == -1:
             color_key = image.get_at((0, 0))
@@ -45,15 +47,74 @@ def get_sprite(image_sprites, i, j, size):
 
 
 class Unit(pygame.sprite.Sprite):
-    image_file = load_image(r"sprites\human\units\peasant.png")
-    image = get_sprite(image_file, 0, 0, UNIT_SIZE)
-
     def __init__(self, group):
         super().__init__(group)
-        self.image = Unit.image
+        image_file = load_image(r"sprites\human\units\peasant.png")
+        self.image = get_sprite(image_file, 0, 0, UNIT_SIZE)
         self.rect = self.image.get_rect()
-        self.rect.x = random.randrange(300)
-        self.rect.y = random.randrange(300)
+        self.rect.x = 20
+        self.rect.y = 20
+
+    def move_up(self):
+        self.rect.y -= 20
+
+
+class Peasant(Unit):
+    def __init__(self, group):
+        super().__init__(group)
+        image_file = load_image(r"sprites\human\units\peasant.png")
+        self.image = get_sprite(image_file, 0, 0, UNIT_SIZE)
+
+
+class Cursor(pygame.sprite.Sprite):
+    def __init__(self, group):
+        super().__init__(group)
+        image_file = load_image(r"sprites\human\x_startpoint.png")
+        self.image = get_sprite(image_file, 0, 0, UNIT_SIZE)
+        self.rect = self.image.get_rect()
+        self.rect.x = 20
+        self.rect.y = 20
 
     def update(self):
-        self.rect = self.rect.move(random.randrange(3) - 1, random.randrange(3) - 1)
+        self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+        self.image = self.frames[self.cur_frame]
+
+
+class Map:
+    def __init__(self):
+        self.map = [[None for _ in range(COUNT_CELLS)] for _ in range(COUNT_CELLS)]
+
+    def set_object(self, i, j, obj):
+        self.map[i][j] = obj
+
+    def get_object(self, i, j):
+        return self.map[i][j]
+
+    def get_coordinates(self, obj):
+        for x in range(COUNT_CELLS):
+            for y in range(COUNT_CELLS):
+                if self.map[x][y] == obj:
+                    return (x - 0.5) * CELL_SIZE, (y - 0.5) * CELL_SIZE
+        return None
+
+    def get_cells(self, x, y):
+        return x // 36, y // 36
+
+    def update(self):
+        color = pygame.Color("white")
+        for x_pos in range(CELL_SIZE, WIDTH_MAP, CELL_SIZE):
+            start_pos = (x_pos, 0)
+            end_pos = (x_pos, HEIGHT_MAP)
+            pygame.draw.line(SCREEN, color, start_pos, end_pos, 1)
+        for y_pos in range(CELL_SIZE, HEIGHT_MAP, CELL_SIZE):
+            start_pos = (0, y_pos)
+            end_pos = (WIDTH_MAP, y_pos)
+            pygame.draw.line(SCREEN, color, start_pos, end_pos, 1)
+
+
+class Button:
+    pass
+
+
+class Menu:
+    pass
