@@ -59,6 +59,8 @@ class Unit(pygame.sprite.Sprite):
         self.rect.x = 20
         self.rect.y = 20
 
+        self.cur_frame = 0
+
     def get_i(self):
         return self.i
 
@@ -86,6 +88,11 @@ class Unit(pygame.sprite.Sprite):
         elif j > new_j:
             j -= 1
         self.set_position(i, j)
+
+    def update(self):
+        self.cur_frame = (self.cur_frame + 1) % len(frames)
+        self.image = frames[self.cur_frame]
+
 
 
 class Peasant(Unit):

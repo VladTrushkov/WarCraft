@@ -5,13 +5,11 @@ def main():
     pygame.init()
     clock = pygame.time.Clock()
 
-    speed = 0
     running = True
 
     all_sprites = pygame.sprite.Group()
     #all_sprites_2 = pygame.sprite.Group()
     active_sprite = None
-    #sprite = pygame.sprite.Sprite(all_sprites)
     """
     image_cursor = load_image(r"sprites\human\startpoint.png")
     cursor = pygame.sprite.Sprite(all_sprites_2)
@@ -19,12 +17,8 @@ def main():
     cursor.rect = cursor.image.get_rect()
     """
 
-    #image = load_image(r"sprites\human\units\peasant.png")
-    #sprite.image = image
-    #sprite.image = pygame.transform.scale(image, (CELL_SIZE, CELL_SIZE))
-    #cut_sheet(image, 1, 1)
-    #sprite.image = frames[3]
-    #sprite.rect = sprite.image.get_rect()
+    image = load_image(r"sprites\human\units\peasant.png")
+    cut_sheet(image, 1, 1)
 
     setka = Map()
     for _ in range(1):
@@ -53,7 +47,7 @@ def main():
                 elif event.button == 3:
                     if active_sprite:
                         active_sprite.set_new_position(i_pos, j_pos)
-
+                print(obj)
                 setka.print_map()
                 """
                 cursor.rect.x = x_mouse
@@ -63,17 +57,11 @@ def main():
             if event.type == MYEVENTTYPE:
                 for obj in all_sprites:
                     obj.move()
-                    obj.rect.x, obj.rect.y = setka.get_coordinates(obj)
                     setka.set_object(obj)
-        #peasant.rect.x, peasant.rect.y = setka.get_coordinates(peasant)
-        #sprite.rect.x = 72
-        #sprite.rect.y = 72
+                    obj.rect.x, obj.rect.y = setka.get_coordinates(obj)
 
-        #speed += clock.tick() / 100
-        #i = int(speed % 5)
-        #sprite.image = frames[i]
-
-
+        clock.tick(10)
+        all_sprites.update()
         all_sprites.draw(SCREEN)
         pygame.display.flip()
 
