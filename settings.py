@@ -1,7 +1,7 @@
 import pygame
 
 
-COUNT_CELLS = 25
+COUNT_CELLS = 5
 CELL_SIZE = 36
 UNIT_SIZE = 72
 WIDTH_MENU = CELL_SIZE * 6

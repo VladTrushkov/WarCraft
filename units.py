@@ -43,6 +43,8 @@ def get_sprite(image_sprites, i, j, size):
     rect = pygame.Rect(0, 0, size, size)
     sprite_location = (rect.w * i, rect.h * j)
     sprite = image_sprites.subsurface(pygame.Rect(sprite_location, rect.size))
+    # Модифицировать со scale??? UNIT_SIZE равен CELL_SIZE * 2
+    #sprite = pygame.transform.scale(sprite, (CELL_SIZE * 2, CELL_SIZE * 2))
     return sprite
 
 
@@ -65,6 +67,9 @@ class Peasant(Unit):
         image_file = load_image(r"sprites\human\units\peasant.png")
         self.image = get_sprite(image_file, 0, 0, UNIT_SIZE)
 
+    def __str__(self):
+        return 'Peasant'
+
 
 class Cursor(pygame.sprite.Sprite):
     def __init__(self, group):
@@ -84,21 +89,37 @@ class Map:
     def __init__(self):
         self.map = [[None for _ in range(COUNT_CELLS)] for _ in range(COUNT_CELLS)]
 
-    def set_object(self, i, j, obj):
-        self.map[i][j] = obj
+    def set_object(self, i_new, j_new, obj):
+        for i in range(COUNT_CELLS):
+            for j in range(COUNT_CELLS):
+                if self.map[i][j] == obj:
+                    self.map[i][j] = None
+        self.map[i_new][j_new] = obj
 
     def get_object(self, i, j):
         return self.map[i][j]
 
     def get_coordinates(self, obj):
-        for x in range(COUNT_CELLS):
-            for y in range(COUNT_CELLS):
-                if self.map[x][y] == obj:
-                    return (x - 0.5) * CELL_SIZE, (y - 0.5) * CELL_SIZE
+        for i in range(COUNT_CELLS):
+            for j in range(COUNT_CELLS):
+                if self.map[i][j] == obj:
+                    x = (j - 0.5) * CELL_SIZE
+                    y = (i - 0.5) * CELL_SIZE
+                    return x, y
         return None
 
     def get_cells(self, x, y):
-        return x // 36, y // 36
+        i = y // CELL_SIZE
+        j = x // CELL_SIZE
+        return i, j
+
+    def print_map(self):
+        for i in range(COUNT_CELLS):
+            for j in range(COUNT_CELLS):
+                print(self.map[i][j], end='\t')
+            print()
+        print()
+
 
     def update(self):
         color = pygame.Color("white")
