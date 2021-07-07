@@ -28,13 +28,16 @@ def main():
 
     setka = Map()
     for _ in range(1):
-        peasant = Peasant(all_sprites)
-        peasant_2 = Peasant(all_sprites)
-        setka.set_object(3, 3, peasant)
-        setka.set_object(1, 2, peasant_2)
+        peasant = Peasant(all_sprites, 3, 3)
+        peasant_2 = Peasant(all_sprites, 1, 2)
+        setka.set_object(peasant)
+        setka.set_object(peasant_2)
 
     for obj in all_sprites:
         obj.rect.x, obj.rect.y = setka.get_coordinates(obj)
+
+    MYEVENTTYPE = 30
+    pygame.time.set_timer(MYEVENTTYPE, 500)
     while running:
         SCREEN.fill((0, 0, 0))
         setka.update()
@@ -43,22 +46,25 @@ def main():
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 x_mouse, y_mouse = event.pos
-                i, j = setka.get_cells(x_mouse, y_mouse)
+                i_pos, j_pos = setka.get_cells(x_mouse, y_mouse)
                 if event.button == 1:
-                    obj = setka.get_object(i, j)
+                    obj = setka.get_object(i_pos, j_pos)
                     active_sprite = obj if obj else None
                 elif event.button == 3:
                     if active_sprite:
-                        setka.set_object(i, j, active_sprite)
-                print(obj)
-                if obj:
-                    obj.rect.x, obj.rect.y = setka.get_coordinates(obj)
+                        active_sprite.set_new_position(i_pos, j_pos)
+
                 setka.print_map()
                 """
                 cursor.rect.x = x_mouse
                 cursor.rect.y = y_mouse
                 all_sprites_2.update()
                 """
+            if event.type == MYEVENTTYPE:
+                for obj in all_sprites:
+                    obj.move()
+                    obj.rect.x, obj.rect.y = setka.get_coordinates(obj)
+                    setka.set_object(obj)
         #peasant.rect.x, peasant.rect.y = setka.get_coordinates(peasant)
         #sprite.rect.x = 72
         #sprite.rect.y = 72
@@ -66,6 +72,8 @@ def main():
         #speed += clock.tick() / 100
         #i = int(speed % 5)
         #sprite.image = frames[i]
+
+
         all_sprites.draw(SCREEN)
         pygame.display.flip()
 

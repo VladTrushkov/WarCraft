@@ -49,21 +49,48 @@ def get_sprite(image_sprites, i, j, size):
 
 
 class Unit(pygame.sprite.Sprite):
-    def __init__(self, group):
+    def __init__(self, group, i, j):
         super().__init__(group)
         image_file = load_image(r"sprites\human\units\peasant.png")
         self.image = get_sprite(image_file, 0, 0, UNIT_SIZE)
+        self.current_i, self.current_j = i, j
+        self.new_i, self.new_j = i, j
         self.rect = self.image.get_rect()
         self.rect.x = 20
         self.rect.y = 20
 
-    def move_up(self):
-        self.rect.y -= 20
+    def get_i(self):
+        return self.i
+
+    def get_j(self):
+        return self.j
+
+    def get_position(self):
+        return self.current_i, self.current_j
+
+    def set_position(self, i, j):
+        self.current_i, self.current_j = i, j
+
+    def set_new_position(self, i, j):
+        self.new_i, self.new_j = i, j
+
+    def move(self):
+        new_i, new_j = self.new_i, self.new_j
+        i, j = self.get_position()
+        if i < new_i:
+            i += 1
+        elif i > new_i:
+            i -= 1
+        if j < new_j:
+            j += 1
+        elif j > new_j:
+            j -= 1
+        self.set_position(i, j)
 
 
 class Peasant(Unit):
-    def __init__(self, group):
-        super().__init__(group)
+    def __init__(self, group, i, j):
+        super().__init__(group, i, j)
         image_file = load_image(r"sprites\human\units\peasant.png")
         self.image = get_sprite(image_file, 0, 0, UNIT_SIZE)
 
@@ -89,11 +116,12 @@ class Map:
     def __init__(self):
         self.map = [[None for _ in range(COUNT_CELLS)] for _ in range(COUNT_CELLS)]
 
-    def set_object(self, i_new, j_new, obj):
+    def set_object(self, obj):
         for i in range(COUNT_CELLS):
             for j in range(COUNT_CELLS):
                 if self.map[i][j] == obj:
                     self.map[i][j] = None
+        i_new, j_new = obj.get_position()
         self.map[i_new][j_new] = obj
 
     def get_object(self, i, j):
