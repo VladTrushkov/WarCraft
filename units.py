@@ -1,8 +1,5 @@
-from settings import *
+from sprites import *
 import os
-
-
-frames = []
 
 
 def load_image(name, color_key=None):
@@ -21,51 +18,24 @@ def load_image(name, color_key=None):
     return image
 
 
-def cut_sheet(sheet, columns, rows):
-    global frames
-    rect = pygame.Rect(0, 0, 72, 72)
-    for i in range(1):
-        for j in range(5):
-            frame_location = (rect.w * i, rect.h * j)
-            frame = sheet.subsurface(pygame.Rect(frame_location, rect.size))
-            frames.append(frame)
-
-
-def get_sprite(image_sprites, i, j, size):
-    """
-    Получение одной спрайта из набора спрайтов
-    :param image_sprites: картинка со спрайтами
-    :param i: номер ряда
-    :param j: номер столбца
-    :param size: размер квадратика спрайта (size x size)
-    :return: обрезаную картинку из спрайта
-    """
-    rect = pygame.Rect(0, 0, size, size)
-    sprite_location = (rect.w * i, rect.h * j)
-    sprite = image_sprites.subsurface(pygame.Rect(sprite_location, rect.size))
-    # Модифицировать со scale??? UNIT_SIZE равен CELL_SIZE * 2
-    #sprite = pygame.transform.scale(sprite, (CELL_SIZE * 2, CELL_SIZE * 2))
-    return sprite
-
-
 class Unit(pygame.sprite.Sprite):
     def __init__(self, group, i, j):
         super().__init__(group)
-        image_file = load_image(r"sprites\human\units\peasant.png")
-        self.image = get_sprite(image_file, 0, 0, UNIT_SIZE)
+        self.image_file = load_image(r"sprites\human\units\peasant.png")
+        self.image = get_sprite(self.image_file, 0, 0, UNIT_SIZE)
         self.current_i, self.current_j = i, j
         self.new_i, self.new_j = i, j
         self.rect = self.image.get_rect()
-        self.rect.x = 20
-        self.rect.y = 20
+        self.rect.x, self.rect.y = 20, 20
+        self.frames = [self.image]
 
-        self.cur_frame = 0
+        self.current_frame = 0
 
     def get_i(self):
-        return self.i
+        return self.current_i
 
     def get_j(self):
-        return self.j
+        return self.current_j
 
     def get_position(self):
         return self.current_i, self.current_j
@@ -79,27 +49,52 @@ class Unit(pygame.sprite.Sprite):
     def move(self):
         new_i, new_j = self.new_i, self.new_j
         i, j = self.get_position()
+        i_direction, j_direction = 0, 0
+        #self.frames = sprites_peasant_move_up(self.image_file)
         if i < new_i:
             i += 1
+            i_direction = 1
         elif i > new_i:
             i -= 1
+            i_direction = -1
         if j < new_j:
             j += 1
+            j_direction = 1
         elif j > new_j:
             j -= 1
+            j_direction = -1
+        if i_direction == -1 and j_direction == 0:
+            self.frames = sprites_peasant_move_up(self.image_file)
+        elif i_direction == 1 and j_direction == 0:
+            self.frames = sprites_peasant_move_down(self.image_file)
+        elif i_direction == 0 and j_direction == -1:
+            self.frames = sprites_peasant_move_left(self.image_file)
+        elif i_direction == 0 and j_direction == 1:
+            self.frames = sprites_peasant_move_right(self.image_file)
+        elif i_direction == -1 and j_direction == -1:
+            self.frames = sprites_peasant_move_up_left(self.image_file)
+        elif i_direction == -1 and j_direction == 1:
+            self.frames = sprites_peasant_move_up_right(self.image_file)
+        elif i_direction == 1 and j_direction == -1:
+            self.frames = sprites_peasant_move_down_left(self.image_file)
+        elif i_direction == 1 and j_direction == 1:
+            self.frames = sprites_peasant_move_down_right(self.image_file)
+        #else:
+        #    self.frames = [self.frames[0]]
+
         self.set_position(i, j)
-
-    def update(self):
-        self.cur_frame = (self.cur_frame + 1) % len(frames)
-        self.image = frames[self.cur_frame]
-
 
 
 class Peasant(Unit):
     def __init__(self, group, i, j):
         super().__init__(group, i, j)
-        image_file = load_image(r"sprites\human\units\peasant.png")
-        self.image = get_sprite(image_file, 0, 0, UNIT_SIZE)
+        self.image_file = load_image(r"sprites\human\units\peasant.png")
+        self.image = get_sprite(self.image_file, 0, 0, UNIT_SIZE)
+
+    def update(self):
+        frames = self.frames
+        self.current_frame = (self.current_frame + 1) % len(frames)
+        self.image = frames[self.current_frame]
 
     def __str__(self):
         return 'Peasant'
@@ -114,13 +109,18 @@ class Cursor(pygame.sprite.Sprite):
         self.rect.x = 20
         self.rect.y = 20
 
+    """
     def update(self):
         self.cur_frame = (self.cur_frame + 1) % len(self.frames)
         self.image = self.frames[self.cur_frame]
+    """
 
 
 class Map:
     def __init__(self):
+        with open(r"data\map\map.txt", 'r') as file:
+            data = file.read()
+        self.map_2 = [[elem for elem in string] for string in data.split()]
         self.map = [[None for _ in range(COUNT_CELLS)] for _ in range(COUNT_CELLS)]
 
     def set_object(self, obj):
@@ -155,7 +155,6 @@ class Map:
             print()
         print()
 
-
     def update(self):
         color = pygame.Color("white")
         for x_pos in range(CELL_SIZE, WIDTH_MAP, CELL_SIZE):
@@ -166,6 +165,25 @@ class Map:
             start_pos = (0, y_pos)
             end_pos = (WIDTH_MAP, y_pos)
             pygame.draw.line(SCREEN, color, start_pos, end_pos, 1)
+
+
+class Tile(pygame.sprite.Sprite):
+    def __init__(self, group, i, j):
+        super().__init__(group)
+        self.image_file = load_image(r"sprites\tile\summer\terrain\summer.png")
+        self.image = get_sprite(self.image_file, 0, 16, 32)
+        self.current_i, self.current_j = i, j
+        self.new_i, self.new_j = i, j
+        self.rect = self.image.get_rect()
+        self.rect.x, self.rect.y = 20, 20
+        self.frames = [self.image]
+
+
+class Tree(Tile):
+    def __init__(self, group, i, j):
+        super().__init__(group, i, j)
+        self.image_file = load_image(r"sprites\tile\summer\terrain\summer.png")
+        self.image = get_sprite(self.image_file, 15, 7, 32)
 
 
 class Button:
